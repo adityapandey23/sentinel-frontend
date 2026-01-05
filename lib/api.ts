@@ -8,7 +8,7 @@ import type {
   GetSessionsResponse,
   DeleteSessionsResponse,
   FactResponse,
-} from './types';
+} from '../types';
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -28,6 +28,24 @@ const api = axios.create({
 // Token storage helpers
 const TOKEN_STORAGE_KEY = 'sentinel_access_token';
 const REFRESH_TOKEN_STORAGE_KEY = 'sentinel_refresh_token';
+
+// Event system to notify AuthContext when tokens are refreshed silently
+type TokenRefreshCallback = (token: string) => void;
+
+export const tokenEvents = {
+  listeners: new Set<TokenRefreshCallback>(),
+  
+  // Subscribe to token refresh events
+  onRefresh(callback: TokenRefreshCallback): () => void {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
+  },
+  
+  // Emit token refresh event to all listeners
+  emit(token: string): void {
+    this.listeners.forEach((cb) => cb(token));
+  },
+};
 
 export const tokenStorage = {
   getAccessToken: (): string | null => {
@@ -91,6 +109,10 @@ api.interceptors.response.use(
         );
 
         tokenStorage.setAccessToken(data.accessToken);
+        
+        // Notify AuthContext that token was refreshed silently
+        tokenEvents.emit(data.accessToken);
+        
         if (originalRequest.headers) {
           originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
         }

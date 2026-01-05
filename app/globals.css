@@ -3,7 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Custom xs breakpoint for extra small screens */
+@custom-media --xs (min-width: 480px);
+@variant xs (@media (--xs));
+
 @theme inline {
+  --breakpoint-xs: 480px;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
