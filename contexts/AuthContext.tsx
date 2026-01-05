@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useRouter } from 'next/navigation';
 import { authApi, tokenStorage } from '@/lib/api';
 import type { LoginRequest, RegisterRequest } from '@/lib/types';
+import { getErrorMessage } from '@/lib/error';
 
 interface User {
   id: string;
@@ -93,8 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       router.push('/dashboard');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Login failed';
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       throw new Error(message);
     }
   };
@@ -115,8 +116,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       router.push('/dashboard');
-    } catch (error: any) {
-      const message = error.response?.data?.message || 'Registration failed';
+    } catch (error: unknown) {
+      const message = getErrorMessage(error);
       throw new Error(message);
     }
   };

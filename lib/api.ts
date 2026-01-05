@@ -10,13 +10,18 @@ import type {
   FactResponse,
 } from './types';
 
-const BASE_URL = 'http://ec2-3-83-20-146.compute-1.amazonaws.com';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+  console.warn('NEXT_PUBLIC_API_BASE_URL is not set, using default URL');
+}
 
 // Create axios instance
 const api = axios.create({
   baseURL: `${BASE_URL}/api`,
   headers: {
     'Content-Type': 'application/json',
+    'ngrok-skip-browser-warning': 'true',
   },
 });
 
@@ -77,7 +82,12 @@ api.interceptors.response.use(
 
         const { data } = await axios.post<TokenRefreshResponse>(
           `${BASE_URL}/api/auth/token`,
-          { refreshToken } as TokenRefreshRequest
+          { refreshToken } as TokenRefreshRequest,
+          {
+            headers: {
+              'ngrok-skip-browser-warning': 'true',
+            },
+          }
         );
 
         tokenStorage.setAccessToken(data.accessToken);
@@ -112,7 +122,12 @@ export const authApi = {
   refreshToken: async (refreshToken: string): Promise<TokenRefreshResponse> => {
     const response = await axios.post<TokenRefreshResponse>(
       `${BASE_URL}/api/auth/token`,
-      { refreshToken }
+      { refreshToken },
+      {
+        headers: {
+          'ngrok-skip-browser-warning': 'true',
+        },
+      }
     );
     return response.data;
   },

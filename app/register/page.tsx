@@ -6,6 +6,8 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { PageSpinner, Spinner } from '@/components/ui/spinner';
+import { getErrorMessage } from '@/lib/error';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -29,19 +31,15 @@ export default function RegisterPage() {
 
     try {
       await register({ name, email, password });
-    } catch (err: any) {
-      setError(err.message || 'Registration failed. Please try again.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
   };
 
   if (authLoading || isAuthenticated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-lg">Loading...</div>
-      </div>
-    );
+    return <PageSpinner />;
   }
 
   return (
@@ -105,7 +103,14 @@ export default function RegisterPage() {
           </div>
 
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account...' : 'Sign Up'}
+            {isLoading ? (
+              <>
+                <Spinner size="sm" className="mr-2" />
+                Creating account...
+              </>
+            ) : (
+              'Sign Up'
+            )}
           </Button>
         </form>
 

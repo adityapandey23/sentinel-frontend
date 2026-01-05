@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { sessionsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Spinner } from '@/components/ui/spinner';
+import { getErrorMessage } from '@/lib/error';
 import type { Session } from '@/lib/types';
 
 export default function SessionsPage() {
@@ -25,8 +27,8 @@ export default function SessionsPage() {
     try {
       const data = await sessionsApi.getSessions();
       setSessions(data.sessions);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load sessions');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -41,8 +43,8 @@ export default function SessionsPage() {
     try {
       await sessionsApi.revokeSession(sessionId);
       await loadSessions();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to revoke session');
+    } catch (err: unknown) {
+      alert(getErrorMessage(err));
     } finally {
       setRevokingId(null);
     }
@@ -57,8 +59,8 @@ export default function SessionsPage() {
       const response = await sessionsApi.revokeAllOthers();
       await loadSessions();
       alert(`Revoked ${response.deletedCount || 0} session(s)`);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to revoke sessions');
+    } catch (err: unknown) {
+      alert(getErrorMessage(err));
     }
   };
 
@@ -109,7 +111,9 @@ export default function SessionsPage() {
             )}
 
             {isLoading ? (
-              <div className="py-8 text-center text-muted-foreground">Loading sessions...</div>
+              <div className="flex justify-center py-8">
+                <Spinner size="lg" />
+              </div>
             ) : sessions.length === 0 ? (
               <div className="py-8 text-center text-muted-foreground">No active sessions</div>
             ) : (
@@ -165,7 +169,14 @@ export default function SessionsPage() {
                           onClick={() => handleRevokeSession(session.sessionId)}
                           disabled={revokingId === session.sessionId}
                         >
-                          {revokingId === session.sessionId ? 'Revoking...' : 'Revoke'}
+                          {revokingId === session.sessionId ? (
+                            <>
+                              <Spinner size="sm" className="mr-2" />
+                              Revoking...
+                            </>
+                          ) : (
+                            'Revoke'
+                          )}
                         </Button>
                       )}
                     </div>

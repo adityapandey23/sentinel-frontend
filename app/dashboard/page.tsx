@@ -6,6 +6,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { factsApi } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { ProtectedRoute } from '@/components/ProtectedRoute';
+import { Spinner } from '@/components/ui/spinner';
+import { getErrorMessage } from '@/lib/error';
 import type { FactResponse } from '@/lib/types';
 
 export default function DashboardPage() {
@@ -24,8 +26,8 @@ export default function DashboardPage() {
     try {
       const data = await factsApi.getFact();
       setFact(data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to load tip');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -62,7 +64,14 @@ export default function DashboardPage() {
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-xl font-semibold">Competitive Programming Tip</h3>
                 <Button variant="outline" size="sm" onClick={loadFact} disabled={isLoading}>
-                  {isLoading ? 'Loading...' : 'New Tip'}
+                  {isLoading ? (
+                    <>
+                      <Spinner size="sm" className="mr-2" />
+                      Loading...
+                    </>
+                  ) : (
+                    'New Tip'
+                  )}
                 </Button>
               </div>
 
@@ -73,7 +82,9 @@ export default function DashboardPage() {
               )}
 
               {isLoading && !fact && (
-                <div className="py-8 text-center text-muted-foreground">Loading tip...</div>
+                <div className="flex justify-center py-8">
+                  <Spinner size="lg" />
+                </div>
               )}
 
               {fact && !isLoading && (
